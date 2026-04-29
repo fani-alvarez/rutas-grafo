@@ -16,12 +16,22 @@ Enfoque:
     ruta y el resto de los tramos son óptimos por el principio de optimalidad.
 """
 
+# Permite usar anotaciones de tipos modernas (como list[str]) 
+# sin problemas de compatibilidad entre versiones de Python
 from __future__ import annotations
 
+# heapq implementa una cola de prioridad (min-heap)
+# se usa típicamente en algoritmos como Dijkstra
 import heapq
+
+# dataclass permite crear clases simples para almacenar datos
+# sin tener que escribir __init__, __repr__, etc.
 from dataclasses import dataclass, field
+
+# Optional indica que una variable puede ser de un tipo o None
 from typing import Optional
 
+# Importa la estructura del grafo dirigido ponderado definida en tu proyecto
 from src.graph import DirectedWeightedGraph
 
 
@@ -29,42 +39,78 @@ from src.graph import DirectedWeightedGraph
 # Resultado
 # ---------------------------------------------------------------------------
 
+# Esta clase encapsula el resultado de la búsqueda de la ruta
 @dataclass
 class RouteResult:
-    """Encapsula el resultado de una búsqueda de ruta con arista obligatoria."""
+    """
+    Contenedor del resultado del algoritmo de rutas con arista obligatoria.
+    Guarda tanto la solución como información para validación y debugging.
+    """
+    
+    # Indica si se encontró una solución válida
     found: bool
+    
+    # Nodo de origen
     origin: str
+    
+    # Nodo destino
     destination: str
+    
+    # Arista que obligatoriamente debe aparecer en la ruta (u, v)
     mandatory_edge: tuple[str, str]
+    
+    # lista de nodos que representan la ruta encontrada
     path: list[str] = field(default_factory=list)
+    
+    # costo total de la ruta (infinito si no hay solución)
     total_cost: float = float("inf")
+    
+    # Mensaje explicando por qué no se encontró solución (si aplica)
     reason: str = ""
 
     def mandatory_edge_present(self) -> bool:
-        """Verifica que la arista obligatoria aparezca en la ruta devuelta."""
+        """
+        Verifica que la arista obligatoria (u, v) esté en la ruta final.
+        
+        Recorre la lista de nodos y revisa si en algún punto aparece u seguido de v.
+        Esto es clave para validar que la solución cumple la restricción del problema.
+        """
         u, v = self.mandatory_edge
+        
+        # Recorre pares consecutivos en el camino
         for i in range(len(self.path) - 1):
             if self.path[i] == u and self.path[i + 1] == v:
                 return True
+        
         return False
 
     def summary(self) -> str:
+        """
+        Genera un resumen legible del resultado.
+        Útil para debugging y presentación de resultados.
+        """
+        
+        # Caso sin solución
         if not self.found:
             return (
                 f"❌  Sin solución: {self.reason}\n"
                 f"   Origen={self.origin}  Destino={self.destination}  "
                 f"Arista obligatoria={self.mandatory_edge}"
             )
+        
+        # convierte la ruta a formato visual A → B → C
         arrow = " → ".join(self.path)
+        
+        # verifica si la arista obligatoria está presente
         edge_ok = "✅" if self.mandatory_edge_present() else "⚠️  ARISTA FALTANTE"
+        
+        # devuelve el resumen completo
         return (
             f"✅  Ruta encontrada\n"
             f"   Camino   : {arrow}\n"
             f"   Costo    : {self.total_cost}\n"
             f"   Arista {self.mandatory_edge[0]}→{self.mandatory_edge[1]} presente: {edge_ok}"
         )
-
-
 # ---------------------------------------------------------------------------
 # Dijkstra interno
 # ---------------------------------------------------------------------------
