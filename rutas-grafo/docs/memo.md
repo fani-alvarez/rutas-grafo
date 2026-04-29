@@ -1,7 +1,7 @@
 # Memo Técnico — Rutas con Arista Obligatoria
 
 **Proyecto:** Red logística de distribución de paquetes  
-**Fecha:** Junio 2025  
+**Fecha:** 29 Abril 2025  
 
 ---
 
@@ -21,28 +21,17 @@ La solución descompone el problema en dos sub-problemas independientes de Dijks
 
 ## Limitaciones
 
-- **Grafo en memoria:** El dataset completo debe caber en RAM. Para redes de
-  millones de aristas (ej. maps de navegación) se requeriría almacenamiento
-  externo y Dijkstra bidireccional o A*.
-- **Una sola arista obligatoria:** La solución no generaliza directamente a k
-  aristas obligatorias (requeriría programación dinámica o enumeración).
-- **Sin pesos negativos:** Si el caso de negocio incluye descuentos o créditos,
-  habría que migrar a Bellman-Ford.
-- **Unicidad no garantizada:** En empate de costos se devuelve uno de los
-  caminos óptimos sin control sobre cuál.
+- **Grafo en memoria:** El dataset completo debe caber en RAM. 
+- **Una sola arista obligatoria:** La solución no generaliza directamente a k aristas obligatorias (requeriría programación dinámica o enumeración).
+- **Sin pesos negativos:** Si el caso de negocio incluye descuentos o créditos, habría que migrar a Bellman-Ford.
+- **Unicidad no garantizada:** En empate de costos se devuelve uno de los caminos óptimos sin control sobre cuál.
 
 ## Mejoras posibles con más tiempo
 
-1. **k aristas obligatorias:** Modelar como problema de camino hamiltoniano parcial o usar DP sobre subconjuntos.
+1. **k aristas obligatorias:** Considerar que hay más de un punto de control.
 2. **Visualización del grafo:** Renderizar el grafo y resaltar la ruta encontrada con networkx + matplotlib.
-3. **API REST:** Exponer el solver como microservicio para integración con sistemas logísticos reales.
-4. **Benchmarks de escalabilidad:** Medir el tiempo de respuesta con grafos de 10k, 100k y 1M aristas para determinar el límite práctico.
-5. **Persistencia:** Reemplazar JSON por una base de datos de grafos para consultas más expresivas y actualización incremental.
+3. **Persistencia:** Reemplazar JSON por una base de datos de grafos para consultas más expresivas y actualización incremental.
 
 ---
 
-*La parte más frágil de la implementación es la reconstrucción del camino
-mediante el dict `prev` en presencia de ciclos con peso 0: Dijkstra converge
-correctamente, pero la reconstrucción puede incluir el ciclo en la ruta
-visible (como en TC03). El resultado sigue siendo válido y óptimo, pero
-puede sorprender a quienes esperan un camino simple.*
+*La parte más frágil de la implementación es que el algoritmo garantiza optimalidad matemática pero no simplicidad del camino. En un caso real agregaría una restricción de camino simple, lo que requiere un enfoque diferente como programación dinámica o búsqueda con estados visitados. (Caso TC03)*
